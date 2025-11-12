@@ -1,0 +1,11 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.RefreshAllNodes.cpp.obj": [
+			"PerModuleInline.gen.cpp.obj",
+			"RefreshAllNodes.cpp.obj",
+			"RefreshAllNodesCommands.cpp.obj",
+			"RefreshAllNodesStyle.cpp.obj"
+		]
+	}
+}

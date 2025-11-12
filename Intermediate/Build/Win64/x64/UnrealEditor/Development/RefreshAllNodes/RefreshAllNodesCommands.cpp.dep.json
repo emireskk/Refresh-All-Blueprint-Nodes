@@ -1,0 +1,15 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\unrealprojects\\personal\\thelastshift 5.7\\plugins\\refreshallnodes\\source\\refreshallnodes\\private\\refreshallnodescommands.cpp",
+        "ProvidedModule": "",
+        "PCH": "c:\\unrealprojects\\personal\\thelastshift 5.7\\intermediate\\build\\win64\\x64\\thelastshifteditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.valexpapi.cpp20.h.pch",
+        "Includes": [
+            "c:\\unrealprojects\\personal\\thelastshift 5.7\\plugins\\refreshallnodes\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\refreshallnodes\\definitions.refreshallnodes.h",
+            "c:\\unrealprojects\\personal\\thelastshift 5.7\\plugins\\refreshallnodes\\source\\refreshallnodes\\public\\refreshallnodescommands.h",
+            "c:\\unrealprojects\\personal\\thelastshift 5.7\\plugins\\refreshallnodes\\source\\refreshallnodes\\public\\refreshallnodesstyle.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

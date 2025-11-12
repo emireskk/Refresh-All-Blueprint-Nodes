@@ -1,0 +1,25 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\unrealprojects\\personal\\thelastshift 5.7\\plugins\\refreshallnodes\\source\\refreshallnodes\\private\\refreshallnodesstyle.cpp",
+        "ProvidedModule": "",
+        "PCH": "c:\\unrealprojects\\personal\\thelastshift 5.7\\intermediate\\build\\win64\\x64\\thelastshifteditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.valexpapi.cpp20.h.pch",
+        "Includes": [
+            "c:\\unrealprojects\\personal\\thelastshift 5.7\\plugins\\refreshallnodes\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\refreshallnodes\\definitions.refreshallnodes.h",
+            "c:\\unrealprojects\\personal\\thelastshift 5.7\\plugins\\refreshallnodes\\source\\refreshallnodes\\public\\refreshallnodesstyle.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\slatecore\\public\\styling\\slatestyleregistry.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\engine\\public\\slate\\slategameresources.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\projects\\public\\interfaces\\ipluginmanager.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\projects\\public\\plugindescriptor.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\projects\\public\\custombuildsteps.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\projects\\public\\localizationdescriptor.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\projects\\public\\moduledescriptor.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\projects\\public\\plugindisalloweddescriptor.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\projects\\public\\pluginreferencedescriptor.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\projects\\public\\versescope.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\slatecore\\public\\styling\\slatestylemacros.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}
