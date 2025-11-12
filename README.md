@@ -28,3 +28,13 @@ When either action is initiated:
 1.  Clone or download this repository into your project's `Plugins` folder.
 2.  Restart your project.
 3.  Ensure the plugin (RefreshAllNodes) is enabled in the **Edit -> Plugins** menu.
+
+## Known Limitations
+⚠️ UI Thread Block - The editor may freeze in large projects (UE limitation) 
+⚠️ Manual Save Required - The user must save manually (by design) 
+⚠️ No Undo - Blueprint changes cannot be undone (UE limitation)
+
+## Usage Recommendations
+1. Use source control
+2. Commit before running
+3. Test with small folders
