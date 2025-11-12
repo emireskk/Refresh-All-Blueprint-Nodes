@@ -14,6 +14,7 @@
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
 
+
 static const FName RefreshAllNodesTabName("RefreshAllNodes");
 
 #define LOCTEXT_NAMESPACE "FRefreshAllNodesModule"
@@ -58,7 +59,7 @@ void FRefreshAllNodesModule::RefreshAllBlueprintNodes()
 
 	AssetRegistry.GetAssets(Filter, BlueprintAssets);
 
-	// Filter Blueprints in the Engine folder - only take those under /Game/
+	// Filter Blueprints - only /Game/ folder
 	TArray<FAssetData> FilteredBlueprints;
 	for (const FAssetData& AssetData : BlueprintAssets)
 	{
@@ -77,7 +78,7 @@ void FRefreshAllNodesModule::RefreshAllBlueprintNodes()
 
 	EAppReturnType::Type Result = FMessageDialog::Open(
 		EAppMsgType::YesNo,
-		FText::Format(LOCTEXT("ConfirmRefresh", "Found {0} Blueprint(s) in Content folder. This operation may take a while. Continue?"),
+		FText::Format(LOCTEXT("ConfirmRefresh", "Found {0} Blueprint(s) in Content folder.\n\nWARNING: This will modify all Blueprints. Make sure you have a backup!\n\nContinue?"),
 			FText::AsNumber(FilteredBlueprints.Num()))
 	);
 
@@ -88,6 +89,7 @@ void FRefreshAllNodesModule::RefreshAllBlueprintNodes()
 
 	int32 ProcessedCount = 0;
 	int32 ErrorCount = 0;
+	TArray<FString> FailedAssets;
 
 	FScopedSlowTask SlowTask(FilteredBlueprints.Num(), LOCTEXT("RefreshingBlueprints", "Refreshing Blueprint Nodes..."));
 	SlowTask.MakeDialog(true);
@@ -105,51 +107,48 @@ void FRefreshAllNodesModule::RefreshAllBlueprintNodes()
 
 		SlowTask.EnterProgressFrame(1, FText::Format(LOCTEXT("ProcessingBlueprint", "Processing: {0}"), FText::FromName(AssetData.AssetName)));
 
+		// Safe asset loading with validation
 		UBlueprint* Blueprint = Cast<UBlueprint>(AssetData.GetAsset());
-		if (Blueprint)
+		if (!Blueprint || !Blueprint->IsValidLowLevel() || Blueprint->HasAnyFlags(RF_BeginDestroyed | RF_FinishDestroyed))
 		{
-			try
-			{
-				// Refresh all nodes in all graphs
-				TArray<UEdGraph*> Graphs;
-				Blueprint->GetAllGraphs(Graphs);
+			UE_LOG(LogTemp, Warning, TEXT("Failed to load or invalid Blueprint: %s"), *AssetData.AssetName.ToString());
+			ErrorCount++;
+			FailedAssets.Add(AssetData.AssetName.ToString());
+			continue;
+		}
 
-				for (UEdGraph* Graph : Graphs)
-				{
-					if (Graph)
-					{
-						for (UEdGraphNode* Node : Graph->Nodes)
-						{
-							if (Node)
-							{
-								// Reconstruct node
-								Node->ReconstructNode();
-							}
-						}
-					}
-				}
+		// Check if Blueprint is editable (not cooked)
+		UPackage* Package = Blueprint->GetOutermost();
+		if (!Package || Package->HasAnyPackageFlags(PKG_Cooked))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Skipping cooked or invalid package Blueprint: %s"), *AssetData.AssetName.ToString());
+			continue;
+		}
 
-				// Mark package as dirty and save
-				Blueprint->MarkPackageDirty();
-				FBlueprintEditorUtils::RefreshAllNodes(Blueprint);
+		// RefreshAllNodes yeterli - ReconstructNode'a gerek yok
+		FBlueprintEditorUtils::RefreshAllNodes(Blueprint);
 
-				ProcessedCount++;
-			}
-			catch (...)
-			{
-				ErrorCount++;
-				UE_LOG(LogTemp, Warning, TEXT("Failed to refresh Blueprint: %s"), *AssetData.AssetName.ToString());
-			}
+		// Mark as modified
+		Blueprint->MarkPackageDirty();
+
+		ProcessedCount++;
+	}
+
+	// Sonuç mesajý
+	FString ResultText = FString::Printf(TEXT("Refresh complete!\n\nProcessed: %d\nErrors: %d"), ProcessedCount, ErrorCount);
+
+	if (FailedAssets.Num() > 0)
+	{
+		ResultText += TEXT("\n\nFailed Blueprints:\n");
+		for (const FString& AssetName : FailedAssets)
+		{
+			ResultText += FString::Printf(TEXT("- %s\n"), *AssetName);
 		}
 	}
 
-	FText ResultMessage = FText::Format(
-		LOCTEXT("RefreshComplete", "Refresh complete!\nProcessed: {0}\nErrors: {1}"),
-		FText::AsNumber(ProcessedCount),
-		FText::AsNumber(ErrorCount)
-	);
+	ResultText += TEXT("\n\nNOTE: Changes are marked but NOT saved. Please save manually (Ctrl+S or File > Save All).");
 
-	FMessageDialog::Open(EAppMsgType::Ok, ResultMessage);
+	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(ResultText));
 }
 
 void FRefreshAllNodesModule::RefreshBlueprintsInFolder()
@@ -204,7 +203,7 @@ void FRefreshAllNodesModule::RefreshBlueprintsInFolder()
 
 	EAppReturnType::Type Result = FMessageDialog::Open(
 		EAppMsgType::YesNo,
-		FText::Format(LOCTEXT("ConfirmFolderRefresh", "Found {0} Blueprint(s) in selected folder(s):\n{1}\n\nThis operation may take a while. Continue?"),
+		FText::Format(LOCTEXT("ConfirmFolderRefresh", "Found {0} Blueprint(s) in:\n{1}\n\nWARNING: This will modify all Blueprints. Make sure you have a backup!\n\nContinue?"),
 			FText::AsNumber(BlueprintAssets.Num()),
 			FText::FromString(FolderNames))
 	);
@@ -216,6 +215,7 @@ void FRefreshAllNodesModule::RefreshBlueprintsInFolder()
 
 	int32 ProcessedCount = 0;
 	int32 ErrorCount = 0;
+	TArray<FString> FailedAssets;
 
 	FScopedSlowTask SlowTask(BlueprintAssets.Num(), LOCTEXT("RefreshingFolderBlueprints", "Refreshing Blueprint Nodes in Folder..."));
 	SlowTask.MakeDialog(true);
@@ -225,7 +225,7 @@ void FRefreshAllNodesModule::RefreshBlueprintsInFolder()
 		if (SlowTask.ShouldCancel())
 		{
 			FMessageDialog::Open(EAppMsgType::Ok,
-				FText::Format(LOCTEXT("FolderRefreshCancelled", "Operation cancelled by user.\nProcessed: {0}\nRemaining: {1}"),
+				FText::Format(LOCTEXT("FolderRefreshCancelled", "Operation cancelled.\nProcessed: {0}\nRemaining: {1}"),
 					FText::AsNumber(ProcessedCount),
 					FText::AsNumber(BlueprintAssets.Num() - ProcessedCount)));
 			return;
@@ -234,47 +234,41 @@ void FRefreshAllNodesModule::RefreshBlueprintsInFolder()
 		SlowTask.EnterProgressFrame(1, FText::Format(LOCTEXT("ProcessingBlueprint", "Processing: {0}"), FText::FromName(AssetData.AssetName)));
 
 		UBlueprint* Blueprint = Cast<UBlueprint>(AssetData.GetAsset());
-		if (Blueprint)
+		if (!Blueprint || !Blueprint->IsValidLowLevel() || Blueprint->HasAnyFlags(RF_BeginDestroyed | RF_FinishDestroyed))
 		{
-			try
-			{
-				TArray<UEdGraph*> Graphs;
-				Blueprint->GetAllGraphs(Graphs);
+			UE_LOG(LogTemp, Warning, TEXT("Failed to load or invalid Blueprint: %s"), *AssetData.AssetName.ToString());
+			ErrorCount++;
+			FailedAssets.Add(AssetData.AssetName.ToString());
+			continue;
+		}
 
-				for (UEdGraph* Graph : Graphs)
-				{
-					if (Graph)
-					{
-						for (UEdGraphNode* Node : Graph->Nodes)
-						{
-							if (Node)
-							{
-								Node->ReconstructNode();
-							}
-						}
-					}
-				}
+		UPackage* Package = Blueprint->GetOutermost();
+		if (!Package || Package->HasAnyPackageFlags(PKG_Cooked))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Skipping cooked or invalid package Blueprint: %s"), *AssetData.AssetName.ToString());
+			continue;
+		}
 
-				Blueprint->MarkPackageDirty();
-				FBlueprintEditorUtils::RefreshAllNodes(Blueprint);
+		FBlueprintEditorUtils::RefreshAllNodes(Blueprint);
+		Blueprint->MarkPackageDirty();
 
-				ProcessedCount++;
-			}
-			catch (...)
-			{
-				ErrorCount++;
-				UE_LOG(LogTemp, Warning, TEXT("Failed to refresh Blueprint: %s"), *AssetData.AssetName.ToString());
-			}
+		ProcessedCount++;
+	}
+
+	FString ResultText = FString::Printf(TEXT("Folder refresh complete!\n\nProcessed: %d\nErrors: %d"), ProcessedCount, ErrorCount);
+
+	if (FailedAssets.Num() > 0)
+	{
+		ResultText += TEXT("\n\nFailed Blueprints:\n");
+		for (const FString& AssetName : FailedAssets)
+		{
+			ResultText += FString::Printf(TEXT("- %s\n"), *AssetName);
 		}
 	}
 
-	FText ResultMessage = FText::Format(
-		LOCTEXT("FolderRefreshComplete", "Folder refresh complete!\nProcessed: {0}\nErrors: {1}"),
-		FText::AsNumber(ProcessedCount),
-		FText::AsNumber(ErrorCount)
-	);
+	ResultText += TEXT("\n\nNOTE: Changes are marked but NOT saved. Please save manually.");
 
-	FMessageDialog::Open(EAppMsgType::Ok, ResultMessage);
+	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(ResultText));
 }
 
 void FRefreshAllNodesModule::RegisterMenus()
