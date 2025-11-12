@@ -1,0 +1,18 @@
+# Build artifacts
+Binaries/
+Intermediate/
+Build/
+
+# Visual Studio
+.vs/
+*.sln
+*.suo
+*.user
+*.opensdf
+*.sdf
+
+# Rider
+.idea/
+
+# Mac
+.DS_Store
