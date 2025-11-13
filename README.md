@@ -2,7 +2,7 @@
 This Unreal Engine editor plugin allows you to bulk-refresh all Blueprint assets in your project without needing to open each one individually.
 It is designed to automatically fix "dirty" Blueprint errors and compilation issues that often appear after changing C++ based `Structs` or function signatures.
 
-*Disclaimer: This is an experimental plugin developed with the assistance of Claude AI. Please back up your project before use, as automated bulk operations can have unintended consequences.*
+**Disclaimer: This is an experimental plugin developed with the assistance of Claude AI. Please back up your project before use, as automated bulk operations can have unintended consequences.**
 
 ## Features
 Based on the code analysis, the plugin offers two primary functions:
